@@ -166,6 +166,9 @@ class Agent:
                 old_state = new_state
                 old_state_processed = new_state_processed
 
+                if steps >= self.args.episode_length:
+                    break
+
             # Log statistics
             self.logger.info(f'LOG: episode:{episode}, steps:{steps}, epsilon:{self.epsilon}, episode_reward:{sum(episode_rewards)}, mean_loss:{np.mean(episode_losses)}')
 

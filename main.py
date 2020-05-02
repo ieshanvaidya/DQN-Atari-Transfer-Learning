@@ -88,6 +88,7 @@ class Agent:
 
     def train(self, episodes, length):
         network_updates = 0
+        total_steps = 0
 
         for episode in tqdm(range(episodes), desc='Episode'):
             self.estimator.train()
@@ -102,7 +103,7 @@ class Agent:
 
             while not done:
                 # Linear annealing of exploration
-                self.epsilon = max(self.args.final_exploration, ((self.args.final_exploration - self.args.initial_exploration) / self.args.final_exploration_frame) * episode + self.args.initial_exploration)
+                self.epsilon = max(self.args.final_exploration, ((self.args.final_exploration - self.args.initial_exploration) / self.args.final_exploration_frame) * total_steps + self.args.initial_exploration)
 
                 ####################################################
                 # Select e-greedy action                           #
@@ -124,6 +125,7 @@ class Agent:
                     reward, new_state_processed, done))
 
                 steps += 1
+                total_steps += 1
                 episode_rewards.append(reward)
 
 

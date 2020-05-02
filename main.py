@@ -166,7 +166,7 @@ class Agent:
                 old_state = new_state
                 old_state_processed = new_state_processed
 
-                if steps >= self.args.episode_length:
+                if steps >= length:
                     break
 
             # Log statistics

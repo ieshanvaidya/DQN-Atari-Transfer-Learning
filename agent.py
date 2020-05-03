@@ -33,6 +33,10 @@ class Agent:
         self.optimizer = optim.Adam(self.estimator.parameters(), lr=args.lr)
         # optim.RMSprop(self.estimator.parameters(), lr=args.lr)
 
+        # Tracking
+        self.episode_rewards = []
+        self.episode_lengths = []
+
         # Logging
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
@@ -78,14 +82,14 @@ class Agent:
         network_updates = 0
         total_steps = 0
 
-        for episode in tqdm(range(episodes), desc='Episode'):
+        for episode in tqdm(range(1, episodes + 1), desc='Episode'):
             self.estimator.train()
 
             old_state = self.env.reset()
             done = False
             steps = 0
-            episode_rewards = []
-            episode_losses = []
+            episode_reward = 0
+            episode_loss = 0
 
             while not done:
                 # Linear annealing of exploration
@@ -109,7 +113,7 @@ class Agent:
 
                 steps += 1
                 total_steps += 1
-                episode_rewards.append(reward)
+                episode_reward += reward
 
 
                 # Perform network updates every [update_frequency] steps
@@ -134,7 +138,7 @@ class Agent:
                     loss.backward()
                     self.optimizer.step()
 
-                    episode_losses.append(loss.item())
+                    episode_loss += loss.item()
                     network_updates += 1
 
                 # Update Target Network
@@ -144,5 +148,9 @@ class Agent:
                 old_state = new_state
 
 
+            self.episode_rewards.append(episode_reward)
+            self.episode_lengths.append(steps)
+
             # Log statistics
-            self.logger.info(f'LOG: episode:{episode}, steps:{steps}, epsilon:{self.epsilon}, episode_reward:{sum(episode_rewards)}, mean_loss:{np.mean(episode_losses)}')
+            if not episode % self.args.log_every:
+                self.logger.info(f'LOG: episode:{episode}, total_steps:{total_steps}, epsilon:{self.epsilon}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}')

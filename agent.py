@@ -160,7 +160,7 @@ class Agent:
 
             # Evaluate and log statistics
             if not episode % self.args.log_every:
-                discounted_reward, total_reward = self.evaluate()
+                discounted_reward, total_reward = self.evaluate(self.args.validation_episodes)
                 if discounted_reward > best_discounted_reward:
                     best_discounted_reward = discounted_reward
                     torch.save(self.estimator.state_dict(), os.path.join(self.args.save_dir, 'model.pt'))
@@ -169,7 +169,7 @@ class Agent:
 
 
 
-    def evaluate(self, n=10):
+    def evaluate(self, n):
         discounted_rewards = []
         total_rewards = []
 

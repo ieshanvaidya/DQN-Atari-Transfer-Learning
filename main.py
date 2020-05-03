@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_squared_gradient', type=float, default=0.01, help='Min squared gradient')
     parser.add_argument('--cuda', action='store_true', help='Enable CUDA training')
     parser.add_argument('--log_every', type=int, default=100, help='Log every [_] episodes')
+    parser.add_argument('--validation_episodes', type=int, default=10, help='Number of episodes for validation')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
 
 

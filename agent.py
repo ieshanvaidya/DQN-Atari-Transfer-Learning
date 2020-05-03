@@ -17,6 +17,12 @@ class Agent:
         self.env = env
         self.args = args
 
+        # Set seed
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        self.env.seed(args.seed)
+        self.env.action_space.seed(args.seed)
 
         # Replay memory
         self.replay_memory = utils.ReplayBuffer(size=args.replay_memory_size)
@@ -31,7 +37,7 @@ class Agent:
         # Optimization
         self.criterion = nn.SmoothL1Loss()
         self.optimizer = optim.Adam(self.estimator.parameters(), lr=args.lr)
-        # optim.RMSprop(self.estimator.parameters(), lr=args.lr)
+        #optim.RMSprop(self.estimator.parameters(), lr=args.lr, momentum=args.gradient_momentum, )
 
         # Tracking
         self.episode_rewards = []
@@ -81,6 +87,7 @@ class Agent:
     def train(self, episodes):
         network_updates = 0
         total_steps = 0
+        best_discounted_reward = -np.inf
 
         for episode in tqdm(range(1, episodes + 1), desc='Episode'):
             self.estimator.train()
@@ -151,6 +158,38 @@ class Agent:
             self.episode_rewards.append(episode_reward)
             self.episode_lengths.append(steps)
 
-            # Log statistics
+            # Evaluate and log statistics
             if not episode % self.args.log_every:
-                self.logger.info(f'LOG: episode:{episode}, total_steps:{total_steps}, epsilon:{self.epsilon}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}')
+                discounted_reward, total_reward = self.evaluate()
+                if discounted_reward > best_discounted_reward:
+                    best_discounted_reward = discounted_reward
+                    torch.save(self.estimator.state_dict(), os.path.join(self.args.save_dir, 'model.pt'))
+
+                self.logger.info(f'LOG: episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, best_validation_discounted_reward:{best_discounted_reward}')
+
+
+
+    def evaluate(self, n=10):
+        discounted_rewards = []
+        total_rewards = []
+
+        for i in range(n):
+            total_reward = 0
+            discounted_reward = 0
+            done = False
+            steps = 0
+            state = self.env.reset()
+            while not done:
+                with torch.no_grad():
+                    action = np.argmax(self.estimator(torch.tensor(np.array(state).astype(np.float32) / 255.0, device=self.device).unsqueeze(0)).cpu().numpy())
+
+                state, reward, done, info = self.env.step(action)
+                total_reward += reward
+                discounted_reward += self.args.discount_factor ** steps * reward
+                steps += 1
+
+            discounted_rewards.append(discounted_reward)
+            total_rewards.append(total_reward)
+
+        return np.mean(discounted_rewards), np.mean(total_rewards)
+

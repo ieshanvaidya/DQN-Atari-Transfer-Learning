@@ -27,13 +27,13 @@ if __name__ == '__main__':
     parser.add_argument('--final_exploration_frame', type=int, default=100_000, help='Final exploration frame')
     parser.add_argument('--update_frequency', type=int, default=4, help='Perform backprop every [_] action steps')
     parser.add_argument('--target_network_update_frequency', type=int, default=10_000, help='update target model every [_] steps')
-    parser.add_argument('--clip', type=int, default=1, help='Reward clip')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--gradient_momentum', type=float, default=0.95, help='Gradient momentum')
     parser.add_argument('--squared_gradient_momentum', type=float, default=0.95, help='Squared gradient momentum')
     parser.add_argument('--min_squared_gradient', type=float, default=0.01, help='Min squared gradient')
     parser.add_argument('--cuda', action='store_true', help='Enable CUDA training')
     parser.add_argument('--log_every', type=int, default=100, help='Log every [_] episodes')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed')
 
 
     args = parser.parse_args()
@@ -48,8 +48,7 @@ if __name__ == '__main__':
     if not torch.cuda.is_available() and args.cuda:
         print('--cuda is passed but torch.cuda.is_available() returned False. Will use CPU instead.')
 
-    #env = gym.make(args.env)
-    env = utils.wrap_deepmind(utils.make_atari('AssaultNoFrameskip-v4', max_episode_steps=args.episode_length), frame_stack=True)
+    env = utils.wrap_deepmind(utils.make_atari('AssaultNoFrameskip-v4', max_episode_steps=args.episode_length, frameskip=args.frameskip), frame_stack=True, stacks=args.agent_history_length)
     agent = Agent(env, args)
 
     agent.train(args.episodes)

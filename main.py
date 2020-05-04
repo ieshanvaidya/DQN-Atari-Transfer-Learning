@@ -51,7 +51,7 @@ if __name__ == '__main__':
     if not torch.cuda.is_available() and args.cuda:
         print('--cuda is passed but torch.cuda.is_available() returned False. Will use CPU instead.')
 
-    env = utils.wrap_deepmind(utils.make_atari('AssaultNoFrameskip-v4', max_episode_steps=args.episode_length, frameskip=args.frameskip), frame_stack=True, stacks=args.agent_history_length)
+    env = utils.wrap_deepmind(utils.make_atari(args.env, max_episode_steps=args.episode_length, frameskip=args.frameskip), frame_stack=True, stacks=args.agent_history_length)
     agent = Agent(env, args)
 
     agent.train(args.episodes)

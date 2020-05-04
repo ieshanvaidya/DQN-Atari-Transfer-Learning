@@ -88,7 +88,7 @@ class Agent:
     def train(self, episodes):
         network_updates = 0
         total_steps = 0
-        best_discounted_reward = -np.inf
+        best_total_reward = -np.inf
 
         for episode in tqdm(range(1, episodes + 1), desc='Episode'):
             self.estimator.train()
@@ -162,8 +162,8 @@ class Agent:
             # Evaluate and log statistics
             if not episode % self.args.log_every:
                 discounted_reward, total_reward = self.evaluate(self.args.validation_episodes)
-                if discounted_reward > best_discounted_reward:
-                    best_discounted_reward = discounted_reward
+                if total_reward > best_total_reward:
+                    best_total_reward = total_reward
                     torch.save(self.estimator.state_dict(), os.path.join(self.args.save_dir, 'model.pt'))
 
                 self.logger.info(f'episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, validation_discounted_reward:{discounted_reward}, validation_total_reward:{total_reward}')

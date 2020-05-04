@@ -7,7 +7,7 @@ from gym import spaces
 import random
 
 # ReplayBuffer, atari_wrappers adapted from OpenAI Baselines
-# Changed LazyFrames implementation by having frames dimension first instead of last
+# Changed LazyFrames implementation by having frames dimension first instead of last | Only modified _force function and not others
 # IMP: Buffer stores unnormalized frames but sample returns normalized ones
 
 # https://github.com/openai/baselines/blob/master/baselines/deepq/replay_buffer.py

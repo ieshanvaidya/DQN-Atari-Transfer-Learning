@@ -166,7 +166,7 @@ class Agent:
                     best_discounted_reward = discounted_reward
                     torch.save(self.estimator.state_dict(), os.path.join(self.args.save_dir, 'model.pt'))
 
-                self.logger.info(f'episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, best_validation_discounted_reward:{best_discounted_reward}')
+                self.logger.info(f'episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, validation_discounted_reward:{discounted_reward}, validation_total_reward:{total_reward}')
 
 
 

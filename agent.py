@@ -46,7 +46,8 @@ class Agent:
         # Logging
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s, %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        #formatter = logging.Formatter('%(asctime)s, %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter('%(message)s')
         file_handler = logging.FileHandler(os.path.join(args.save_dir, 'train.log'))
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
@@ -165,7 +166,7 @@ class Agent:
                     best_discounted_reward = discounted_reward
                     torch.save(self.estimator.state_dict(), os.path.join(self.args.save_dir, 'model.pt'))
 
-                self.logger.info(f'LOG: episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, best_validation_discounted_reward:{best_discounted_reward}')
+                self.logger.info(f'episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, best_validation_discounted_reward:{best_discounted_reward}')
 
 
 
@@ -185,7 +186,7 @@ class Agent:
 
                 state, reward, done, info = self.env.step(action)
                 total_reward += reward
-                discounted_reward += self.args.discount_factor ** steps * reward
+                discounted_reward += (self.args.discount_factor ** steps) * reward
                 steps += 1
 
             discounted_rewards.append(discounted_reward)

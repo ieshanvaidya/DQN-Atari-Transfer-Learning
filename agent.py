@@ -36,8 +36,8 @@ class Agent:
 
         # Optimization
         self.criterion = nn.SmoothL1Loss()
-        #self.optimizer = optim.Adam(self.estimator.parameters(), lr=args.lr)
-        self.optimizer = optim.RMSprop(self.estimator.parameters(), lr=args.lr, alpha=args.alpha, eps=args.eps)
+        self.optimizer = optim.Adam(self.estimator.parameters(), lr=args.lr)
+        #self.optimizer = optim.RMSprop(self.estimator.parameters(), lr=args.lr, alpha=args.alpha, eps=args.eps)
 
         # Tracking
         self.episode_rewards = []

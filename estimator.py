@@ -42,3 +42,15 @@ class Estimator(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 nn.init.kaiming_normal_(m.weight)
+                
+                
+class transfer_model(nn.Module):
+    def __init__(self, base_model, num_actions):
+        super(transfer_model, self).__init__()
+        self.features = nn.Sequential(*list(base_model.model[:-1]))
+        self.fc = nn.Linear(in_features=512, out_features=num_actions)
+    
+    def forward(self, x):
+        out = self.features(x)
+        out = self.fc(out)
+        return out

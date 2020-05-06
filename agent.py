@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import utils
-from estimator import Estimator
+from estimator import Estimator, transfer_model
 import torch.optim as optim
 import logging
 import yaml
@@ -30,9 +30,25 @@ class Agent:
 
         # Estimator
         self.device = torch.device('cuda' if torch.cuda.is_available() and args.cuda else 'cpu')
-        self.estimator = Estimator(num_actions=env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
-        self.target = Estimator(num_actions=env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
-        self.target.load_state_dict(self.estimator.state_dict())
+        if self.args.pretrained:
+            
+            if not self.args.pretrain_model or not self.args.pretrain_env:
+                print('Please specify pre trained environment')
+                return
+            pretrain_env = utils.wrap_deepmind(utils.make_atari(args.pretrain_env, max_episode_steps=args.episode_length, frameskip=args.frameskip), frame_stack=True, stacks=args.agent_history_length)
+            
+            self.base = Estimator(num_actions=pretrain_env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
+            
+            self.base.load_state_dict(torch.load(self.args.pretrain_model, map_location=self.device))
+            
+            self.estimator = transfer_model(self.base, env.action_space.n).to(self.device)
+            
+            self.base_target = Estimator(num_actions=pretrain_env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
+            self.target = transfer_model(self.base_target, env.action_space.n).to(self.device)
+        else:    
+            self.estimator = Estimator(num_actions=env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
+            self.target = Estimator(num_actions=env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
+            self.target.load_state_dict(self.estimator.state_dict())
 
         # Optimization
         self.criterion = nn.SmoothL1Loss()
@@ -55,7 +71,6 @@ class Agent:
 
         with open(os.path.join(args.save_dir, 'config.yaml'), 'w') as f:
             yaml.dump(vars(args), f)
-
 
 
     def _initialize_replay_memory(self, size):

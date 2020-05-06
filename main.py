@@ -37,7 +37,10 @@ if __name__ == '__main__':
     parser.add_argument('--log_every', type=int, default=100, help='Log every [_] episodes')
     parser.add_argument('--validation_episodes', type=int, default=10, help='Number of episodes for validation')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
-
+    parser.add_argument('--pretrained', type=bool, default=False, help='Use pre-trained model')
+    parser.add_argument('--pretrain_env', type=str, default=None, help=f'Pre trained environment | Choose from {", ".join(ENVS)}')
+    parser.add_argument('--pretrain_model', type=str, default=None, help='Path to pre-trained model')
+    
 
     args = parser.parse_args()
 

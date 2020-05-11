@@ -120,12 +120,15 @@ class Agent:
                 ####################################################
                 # Select e-greedy action                           #
                 ####################################################
+                self.model.eval()
                 if random.random() <= self.epsilon:
                     action = self.env.action_space.sample()
 
                 else:
                     with torch.no_grad():
                         action = np.argmax(self.estimator(torch.tensor(np.array(old_state).astype(np.float32) / 255.0, device=self.device).unsqueeze(0)).cpu().numpy())
+
+                self.model.train()
 
                 ####################################################
                 # Env step and store experience in replay memory   #

@@ -62,7 +62,6 @@ class Agent:
         # Logging
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
-        #formatter = logging.Formatter('%(asctime)s, %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         formatter = logging.Formatter('%(message)s')
         file_handler = logging.FileHandler(os.path.join(args.save_dir, 'train.log'))
         file_handler.setFormatter(formatter)
@@ -103,7 +102,7 @@ class Agent:
     def train(self, episodes):
         network_updates = 0
         total_steps = 0
-        best_total_reward = -np.inf
+        best_reward = -np.inf
 
         for episode in tqdm(range(1, episodes + 1), desc='Episode'):
             self.estimator.train()
@@ -176,37 +175,10 @@ class Agent:
 
             # Evaluate and log statistics
             if not episode % self.args.log_every:
-                discounted_reward, total_reward = self.evaluate(self.args.validation_episodes)
-                if total_reward > best_total_reward:
-                    best_total_reward = total_reward
+                current_reward = np.mean(self.episode_rewards[-self.args.log_every:])
+                current_length = np.mean(self.episode_lengths[-self.args.log_every:])
+                if current_reward > best_reward:
+                    best_reward = current_reward
                     torch.save(self.estimator.state_dict(), os.path.join(self.args.save_dir, 'model.pt'))
 
-                self.logger.info(f'episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{np.mean(self.episode_rewards[-self.args.log_every:])}, episodes_mean_length:{np.mean(self.episode_lengths[-self.args.log_every:])}, validation_discounted_reward:{discounted_reward}, validation_total_reward:{total_reward}')
-
-
-
-    def evaluate(self, n):
-        self.estimator.eval()
-        discounted_rewards = []
-        total_rewards = []
-
-        for i in range(n):
-            total_reward = 0
-            discounted_reward = 0
-            done = False
-            steps = 0
-            state = self.env.reset()
-            while not done:
-                with torch.no_grad():
-                    action = np.argmax(self.estimator(torch.tensor(np.array(state).astype(np.float32) / 255.0, device=self.device).unsqueeze(0)).cpu().numpy())
-
-                state, reward, done, info = self.env.step(action)
-                total_reward += reward
-                discounted_reward += (self.args.discount_factor ** steps) * reward
-                steps += 1
-
-            discounted_rewards.append(discounted_reward)
-            total_rewards.append(total_reward)
-
-        return np.mean(discounted_rewards), np.mean(total_rewards)
-
+                self.logger.info(f'episode:{episode}, epsilon:{self.epsilon}, network_updates:{network_updates}, episodes_mean_reward:{current_reward}, episodes_mean_length:{current_length}')

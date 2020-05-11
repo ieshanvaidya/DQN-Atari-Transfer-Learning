@@ -25,14 +25,11 @@ if __name__ == '__main__':
     parser.add_argument('--initial_exploration', type=float, default=1, help='Initial exploration')
     parser.add_argument('--final_exploration', type=float, default=0.1, help='Final exploration')
     parser.add_argument('--final_exploration_frame', type=int, default=1_000_000, help='Final exploration frame')
-    parser.add_argument('--update_frequency', type=int, default=4, help='Perform backprop every [_] action steps')
+    parser.add_argument('--update_frequency', type=int, default=1, help='Perform backprop every [_] action steps')
     parser.add_argument('--target_network_update_frequency', type=int, default=10_000, help='update target model every [_] steps')
-    parser.add_argument('--lr', type=float, default=0.00025, help='Learning rate')
+    parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
     parser.add_argument('--alpha', type=float, default=0.95, help='RMSprop alpha')
     parser.add_argument('--eps', type=float, default=0.01, help='RMSprop eps')
-    #parser.add_argument('--gradient_momentum', type=float, default=0.95, help='Gradient momentum')
-    #parser.add_argument('--squared_gradient_momentum', type=float, default=0.95, help='Squared gradient momentum')
-    #parser.add_argument('--min_squared_gradient', type=float, default=0.01, help='Min squared gradient')
     parser.add_argument('--cuda', action='store_true', help='Enable CUDA training')
     parser.add_argument('--log_every', type=int, default=100, help='Log every [_] episodes')
     parser.add_argument('--validation_episodes', type=int, default=10, help='Number of episodes for validation')
@@ -40,7 +37,7 @@ if __name__ == '__main__':
     parser.add_argument('--pretrained', type=bool, default=False, help='Use pre-trained model')
     parser.add_argument('--pretrain_env', type=str, default=None, help=f'Pre trained environment | Choose from {", ".join(ENVS)}')
     parser.add_argument('--pretrain_model', type=str, default=None, help='Path to pre-trained model')
-    
+
 
     args = parser.parse_args()
 

@@ -35,16 +35,29 @@ class Agent:
             if not self.args.pretrain_model or not self.args.pretrain_env:
                 print('Please specify pre trained environment')
                 return
+
             pretrain_env = utils.wrap_deepmind(utils.make_atari(args.pretrain_env, max_episode_steps=args.episode_length, frameskip=args.frameskip), frame_stack=True, stacks=args.agent_history_length)
 
             self.base = Estimator(num_actions=pretrain_env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
-
             self.base.load_state_dict(torch.load(self.args.pretrain_model, map_location=self.device))
 
             self.estimator = transfer_model(self.base, env.action_space.n).to(self.device)
 
             self.base_target = Estimator(num_actions=pretrain_env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
             self.target = transfer_model(self.base_target, env.action_space.n).to(self.device)
+
+            # Freeze layers
+            freezed = 0
+            for m in self.estimator.modules():
+                if freezed == args.freeze_layers:
+                    break
+
+                if isinstance(m, nn.Conv2d):
+                    m.requires_grad_(False)
+                    assert m.weight.requires_grad == False
+                    freezed += 1
+
+
         else:
             self.estimator = Estimator(num_actions=env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
             self.target = Estimator(num_actions=env.action_space.n, agent_history_length=args.agent_history_length).to(self.device)
@@ -52,8 +65,8 @@ class Agent:
 
         # Optimization
         self.criterion = nn.SmoothL1Loss()
-        self.optimizer = optim.Adam(self.estimator.parameters(), lr=args.lr)
-        #self.optimizer = optim.RMSprop(self.estimator.parameters(), lr=args.lr, alpha=args.alpha, eps=args.eps)
+        #self.optimizer = optim.Adam(self.estimator.parameters(), lr=args.lr)
+        self.optimizer = optim.RMSprop(self.estimator.parameters(), lr=args.lr, alpha=args.alpha, eps=args.eps)
 
         # Tracking
         self.episode_rewards = []
